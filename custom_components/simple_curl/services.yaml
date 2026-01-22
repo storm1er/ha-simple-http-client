@@ -1,0 +1,49 @@
+fetch:
+  name: Fetch URL
+  description: Fetch a URL with custom method and headers, returning the response content.
+  fields:
+    url:
+      name: URL
+      description: The URL to fetch.
+      required: true
+      example: "https://api.example.com/data"
+      selector:
+        text:
+    method:
+      name: HTTP Method
+      description: The HTTP method to use.
+      default: "GET"
+      example: "POST"
+      selector:
+        select:
+          options:
+            - "GET"
+            - "POST"
+            - "PUT"
+            - "PATCH"
+            - "DELETE"
+            - "HEAD"
+            - "OPTIONS"
+    headers:
+      name: Headers
+      description: HTTP headers as key-value pairs.
+      example: '{"Authorization": "Bearer token123", "Content-Type": "application/json"}'
+      selector:
+        object:
+    body:
+      name: Body
+      description: Request body content (for POST, PUT, PATCH requests).
+      example: '{"key": "value"}'
+      selector:
+        text:
+          multiline: true
+    timeout:
+      name: Timeout
+      description: Request timeout in seconds.
+      default: 10
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 300
+          unit_of_measurement: "s"

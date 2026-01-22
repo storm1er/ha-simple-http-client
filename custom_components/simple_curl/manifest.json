@@ -1,0 +1,13 @@
+{
+  "domain": "simple_curl",
+  "name": "Simple cURL",
+  "codeowners": ["@storm1er"],
+  "config_flow": false,
+  "dependencies": [],
+  "documentation": "https://github.com/storm1er/ha-simple-curl",
+  "issue_tracker": "https://github.com/storm1er/ha-simple-curl/issues",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "1.0.0"
+}
