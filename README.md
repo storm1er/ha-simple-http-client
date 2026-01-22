@@ -1,21 +1,42 @@
-# Home Assistant Simple cURL Integration
+# Simple cURL for Home Assistant
 
-A simple Home Assistant custom integration that provides a service to fetch URLs with custom methods and headers, returning the response as a variable for use in automations and scripts.
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+[![GitHub Release](https://img.shields.io/github/release/storm1er/ha-simple-curl.svg)](https://github.com/storm1er/ha-simple-curl/releases)
+[![License](https://img.shields.io/github/license/storm1er/ha-simple-curl.svg)](LICENSE)
+
+A lightweight Home Assistant integration that provides a simple service to fetch URLs with custom HTTP methods and headers. The response is returned as a variable that can be used directly in your automations and scripts.
+
+## Why Use This?
+
+Unlike the built-in `rest` integration which requires YAML configuration and creates sensors, Simple cURL provides a **callable service** that:
+
+- Works directly in automations and scripts without any configuration
+- Returns data as variables using Home Assistant's `response_variable` feature
+- Supports all HTTP methods (GET, POST, PUT, PATCH, DELETE, etc.)
+- Handles custom headers and request bodies
+- Provides complete response data (status, content, headers)
+
+Perfect for one-off API calls, webhooks, or dynamic URL fetching where you don't need persistent sensors.
 
 ## Installation
 
-1. Copy the `custom_components/simple_curl` folder to your Home Assistant `custom_components` directory.
-2. Restart Home Assistant.
-3. The integration will be loaded automatically.
+### HACS (Recommended)
 
-## Features
+1. Open HACS in Home Assistant
+2. Click the three dots (⋮) in the top right → **Custom repositories**
+3. Add this repository URL: `https://github.com/storm1er/ha-simple-curl`
+4. Select category: **Integration**
+5. Click **Add**
+6. Find "Simple cURL" in HACS and click **Download**
+7. Restart Home Assistant
 
-- No configuration required - just install and use
-- Fetch any URL with custom HTTP methods (GET, POST, PUT, PATCH, DELETE, etc.)
-- Set custom headers
-- Send request body
-- Response data stored in variables for use in automations
-- Returns status code, content, and response headers
+### Manual Installation
+
+1. Download the latest release from the [releases page](https://github.com/storm1er/ha-simple-curl/releases)
+2. Extract and copy the `custom_components/simple_curl` folder to your Home Assistant `custom_components` directory
+3. Restart Home Assistant
+
+After installation, the integration loads automatically - no configuration needed!
 
 ## Service: `simple_curl.fetch`
 
@@ -26,32 +47,23 @@ A simple Home Assistant custom integration that provides a service to fetch URLs
 | `url` | Yes | - | The URL to fetch |
 | `method` | No | `GET` | HTTP method (GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS) |
 | `headers` | No | `{}` | HTTP headers as key-value pairs |
-| `body` | No | - | Request body content |
+| `body` | No | - | Request body content (for POST, PUT, PATCH) |
 | `timeout` | No | `10` | Request timeout in seconds |
 
 ### Response Data
 
-The service returns a dictionary with:
-- `status`: HTTP status code (integer)
-- `content`: Response body as text (string)
-- `headers`: Response headers (dictionary)
-- `error`: Error message if request failed (string, only present on error)
+The service returns a dictionary with the following fields:
 
-### How `response_variable` Works
+- **`status`**: HTTP status code (integer)
+- **`content`**: Response body as text (string)
+- **`headers`**: Response headers (dictionary)
+- **`error`**: Error message if request failed (string, only present on error)
 
-This service is registered with `supports_response=SupportsResponse.ONLY`, which means it **always returns data**. Home Assistant automatically captures the returned dictionary when you specify `response_variable` in your service call.
-
-**The mechanism:**
-1. The service handler returns a dictionary (in the Python code)
-2. When you call the service with `response_variable: my_var_name`
-3. Home Assistant automatically stores that dictionary in the variable `my_var_name`
-4. You can then access it in subsequent actions: `{{ my_var_name.content }}`, `{{ my_var_name.status }}`, etc.
-
-This is a built-in Home Assistant feature for services that return data - you don't need to do anything special beyond adding `response_variable` to your service call.
+Use the `response_variable` parameter to capture the response data in your automations.
 
 ## Usage Examples
 
-### Basic GET Request in Automation
+### Basic GET Request
 
 ```yaml
 automation:
@@ -70,36 +82,59 @@ automation:
           message: "API returned: {{ api_response.content }}"
 ```
 
-### POST Request with Headers
+### POST Request with Authentication
 
 ```yaml
 script:
-  fetch_with_auth:
+  post_to_api:
     sequence:
       - service: simple_curl.fetch
         data:
           url: "https://api.example.com/endpoint"
           method: "POST"
           headers:
-            Authorization: "Bearer your_token_here"
+            Authorization: "Bearer {{ states('input_text.api_token') }}"
             Content-Type: "application/json"
-          body: '{"key": "value"}'
+          body: '{"temperature": {{ states("sensor.temperature") }}}'
         response_variable: result
-
-      - condition: template
-        value_template: "{{ result.status == 200 }}"
 
       - service: persistent_notification.create
         data:
-          title: "Success"
-          message: "Response: {{ result.content }}"
+          title: "API Response"
+          message: "Status: {{ result.status }}, Response: {{ result.content }}"
 ```
 
-### Using Response in Conditions
+### Parsing JSON Response
 
 ```yaml
 automation:
-  - alias: "Check API and Act"
+  - alias: "Fetch Weather Data"
+    trigger:
+      - platform: time_pattern
+        hours: "/1"
+    action:
+      - service: simple_curl.fetch
+        data:
+          url: "https://api.weather.example.com/current"
+          headers:
+            Accept: "application/json"
+        response_variable: weather
+
+      - variables:
+          weather_data: "{{ weather.content | from_json }}"
+
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.current_temp
+        data:
+          value: "{{ weather_data.temperature }}"
+```
+
+### Conditional Actions Based on Response
+
+```yaml
+automation:
+  - alias: "Check API Status"
     trigger:
       - platform: state
         entity_id: input_boolean.check_api
@@ -108,42 +143,24 @@ automation:
       - service: simple_curl.fetch
         data:
           url: "https://api.example.com/status"
-        response_variable: api_data
+          timeout: 5
+        response_variable: api_status
 
       - if:
           - condition: template
-            value_template: "{{ api_data.status == 200 }}"
+            value_template: "{{ api_status.status == 200 }}"
         then:
           - service: light.turn_on
             target:
-              entity_id: light.living_room
-        else:
-          - service: persistent_notification.create
+              entity_id: light.status_indicator
             data:
-              message: "API request failed with status {{ api_data.status }}"
-```
-
-### Extracting JSON Response
-
-```yaml
-script:
-  process_json_api:
-    sequence:
-      - service: simple_curl.fetch
-        data:
-          url: "https://api.example.com/json"
-          headers:
-            Accept: "application/json"
-        response_variable: api_response
-
-      - variables:
-          parsed_data: "{{ api_response.content | from_json }}"
-
-      - service: input_text.set_value
-        target:
-          entity_id: input_text.api_result
-        data:
-          value: "{{ parsed_data.field_name }}"
+              rgb_color: [0, 255, 0]
+        else:
+          - service: light.turn_on
+            target:
+              entity_id: light.status_indicator
+            data:
+              rgb_color: [255, 0, 0]
 ```
 
 ### Error Handling
@@ -153,12 +170,12 @@ automation:
   - alias: "Fetch with Error Handling"
     trigger:
       - platform: time_pattern
-        minutes: "/5"
+        minutes: "/15"
     action:
       - service: simple_curl.fetch
         data:
           url: "https://api.example.com/data"
-          timeout: 5
+          timeout: 10
         response_variable: response
 
       - if:
@@ -168,125 +185,77 @@ automation:
           - service: persistent_notification.create
             data:
               title: "API Error"
-              message: "Failed to fetch: {{ response.error }}"
+              message: "Failed to fetch data: {{ response.error }}"
         else:
           - service: logbook.log
             data:
               name: "API Success"
-              message: "Status: {{ response.status }}"
+              message: "Fetched successfully with status {{ response.status }}"
 ```
 
-## Notes
+### Dynamic URL with Template
 
-- The service returns response data that can be captured using `response_variable`
-- Response content is always returned as text - use `from_json` filter for JSON responses
-- Network errors and timeouts are caught and returned in the `error` field
-- Status code `0` indicates a network/connection error
+```yaml
+script:
+  fetch_device_status:
+    sequence:
+      - service: simple_curl.fetch
+        data:
+          url: "http://{{ states('input_text.device_ip') }}/api/status"
+          headers:
+            X-API-Key: "{{ states('input_text.device_api_key') }}"
+        response_variable: device_data
 
-## Publishing to HACS
+      - service: notify.notify
+        data:
+          message: "Device status: {{ device_data.content }}"
+```
 
-This repository is structured to be published to the Home Assistant Community Store (HACS). Here's how to get your integration listed in the HACS default repository:
+## Important Notes
 
-### Prerequisites
+- **Response Content Format**: The response `content` is always returned as text. For JSON APIs, use the `from_json` filter to parse it.
+- **Error Handling**: Network errors, timeouts, and connection failures are caught and returned in the `error` field instead of raising exceptions.
+- **Status Code `0`**: Indicates a network or connection error (not a valid HTTP response).
+- **Timeout**: Default is 10 seconds. Adjust based on your API's expected response time.
+- **Security**: Be careful not to log sensitive data like API keys or tokens. Use secrets for sensitive information.
 
-Before submitting to HACS, you need to:
+## Troubleshooting
 
-1. **Update the repository URLs** - Replace all instances of `yourusername` with your actual GitHub username in:
-   - `custom_components/simple_curl/manifest.json` (documentation, issue_tracker, codeowners)
-   - `info.md`
-   - This README
+### Service not found
 
-2. **Create a GitHub repository** - Push this code to a public GitHub repository
+If the `simple_curl.fetch` service doesn't appear:
+1. Verify the integration is installed in `custom_components/simple_curl/`
+2. Check Home Assistant logs for errors: **Settings** → **System** → **Logs**
+3. Restart Home Assistant
 
-3. **Create icon/logo assets** for the Home Assistant brands repository:
-   - Icon: 256x256px square PNG
-   - Logo (optional): Landscape PNG respecting your brand
+### Request fails with error
 
-### Step-by-Step Submission Process
+- Check the URL is accessible from your Home Assistant instance
+- Verify headers and authentication are correct
+- Increase the `timeout` if the API is slow to respond
+- Check Home Assistant logs for detailed error messages
 
-#### 1. Submit to home-assistant/brands
+### Response is empty
 
-First, add your integration's visual assets:
+- Some APIs return empty bodies for certain status codes (204, 304, etc.)
+- Check `response.status` to understand what the server returned
+- Verify the API endpoint is correct
 
-1. Fork the [home-assistant/brands](https://github.com/home-assistant/brands) repository
-2. Create the directory `custom_integrations/simple_curl/`
-3. Add your assets:
-   - `icon.png` (256x256px, square)
-   - `icon@2x.png` (512x512px, square, optional)
-   - `logo.png` (landscape, optional)
-   - `logo@2x.png` (2x resolution, optional)
-4. Create a pull request
+## Contributing
 
-**Image Requirements:**
-- Icons must be square (1:1 aspect ratio)
-- Icons should be 128-256px (normal) and 256-512px (hDPI)
-- Logos should be landscape and respect your brand's aspect ratio
-- Use PNG format
-- Do not use Home Assistant branded images
-
-#### 2. Validate Your Repository
-
-Ensure your repository passes automated checks:
-
-1. **GitHub Actions are set up** - The `.github/workflows/validate.yml` file runs:
-   - HACS validation
-   - Hassfest validation
-
-2. **Test as a custom repository** in HACS:
-   - Open HACS in Home Assistant
-   - Click the three dots (⋮) → Custom repositories
-   - Add your GitHub repository URL
-   - Select category: Integration
-   - Install and test it
-
-3. **Create a GitHub Release**:
-   - Tag your code with a version (e.g., `v1.0.0`)
-   - Create a release on GitHub
-   - Ensure GitHub Actions pass after the release
-
-#### 3. Submit to HACS Default Repository
-
-Once your repository is validated:
-
-1. Fork the [hacs/default](https://github.com/hacs/default) repository
-2. Add your repository URL to `integration` file (maintain alphabetical order):
-   ```
-   yourusername/ha-simple-curl
-   ```
-3. Create a pull request from your fork (not from an organization)
-4. Fill out the pull request template completely
-5. Wait for automated checks to pass
-6. HACS team will review and merge if everything is correct
-
-#### 4. Maintenance
-
-After acceptance:
-
-- Create GitHub releases for new versions (users can select from the 5 latest)
-- Keep your repository active (not archived)
-- Respond to issues and pull requests
-- Update documentation as needed
-
-### Required Files Checklist
-
-This repository already includes all required files:
-
-- ✅ `custom_components/simple_curl/` - Integration code
-- ✅ `custom_components/simple_curl/manifest.json` - Integration metadata
-- ✅ `custom_components/simple_curl/services.yaml` - Service definitions
-- ✅ `hacs.json` - HACS configuration
-- ✅ `info.md` - HACS integration description
-- ✅ `README.md` - Documentation
-- ✅ `.github/workflows/validate.yml` - Automated validation
-
-### Additional Resources
-
-- [HACS Publisher Documentation](https://www.hacs.xyz/docs/publish/)
-- [HACS Integration Requirements](https://www.hacs.xyz/docs/publish/integration/)
-- [HACS Default Repository](https://github.com/hacs/default)
-- [Home Assistant Brands Repository](https://github.com/home-assistant/brands)
-- [Integration Manifest Documentation](https://developers.home-assistant.io/docs/creating_integration_manifest/)
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on submitting pull requests, reporting issues, or publishing this integration to HACS.
 
 ## License
 
-This integration is provided as-is for Home Assistant 2026.* and later.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+If you find this integration useful, consider:
+- Starring the repository on GitHub
+- Reporting issues or suggesting features via [GitHub Issues](https://github.com/storm1er/ha-simple-curl/issues)
+- Contributing improvements via pull requests
+
+## Credits
+
+Built for Home Assistant 2026.* and later, using the modern `response_variable` service pattern.
