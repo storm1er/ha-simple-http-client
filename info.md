@@ -2,9 +2,19 @@
 
 A lightweight custom integration that provides a callable service to fetch URLs with custom HTTP methods and headers, returning the response as a variable for use in automations and scripts.
 
+### Installation
+
+After downloading from HACS, add to your `configuration.yaml`:
+
+```yaml
+simple_curl:
+```
+
+Then restart Home Assistant. The service will be available immediately.
+
 ### Features
 
-- No configuration required
+- Minimal configuration - just add to configuration.yaml
 - Fetch any URL with custom HTTP methods (GET, POST, PUT, PATCH, DELETE, etc.)
 - Set custom headers and request body
 - Response data stored in variables using `response_variable`

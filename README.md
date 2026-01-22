@@ -28,15 +28,36 @@ Perfect for one-off API calls, webhooks, or dynamic URL fetching where you don't
 4. Select category: **Integration**
 5. Click **Add**
 6. Find "Simple cURL" in HACS and click **Download**
-7. Restart Home Assistant
+7. Add to your `configuration.yaml`:
+   ```yaml
+   simple_curl:
+   ```
+8. Restart Home Assistant
 
 ### Manual Installation
 
 1. Download the latest release from the [releases page](https://github.com/storm1er/ha-simple-curl/releases)
 2. Extract and copy the `custom_components/simple_curl` folder to your Home Assistant `custom_components` directory
-3. Restart Home Assistant
+3. Add to your `configuration.yaml`:
+   ```yaml
+   simple_curl:
+   ```
+4. Restart Home Assistant
 
-After installation, the integration loads automatically - no configuration needed!
+**Note:** This integration must be added to `configuration.yaml` to load. It does not appear in **Settings** → **Devices & Services**.
+
+### Verify Installation
+
+After restarting Home Assistant with `simple_curl:` in your configuration.yaml:
+
+1. Go to **Developer Tools** → **Services**
+2. Search for `simple_curl.fetch`
+3. If the service appears, installation was successful!
+
+Alternatively, check the logs at **Settings** → **System** → **Logs** for:
+```
+Simple cURL integration loaded successfully
+```
 
 ## Service: `simple_curl.fetch`
 
@@ -223,10 +244,18 @@ script:
 
 ### Service not found
 
-If the `simple_curl.fetch` service doesn't appear:
-1. Verify the integration is installed in `custom_components/simple_curl/`
-2. Check Home Assistant logs for errors: **Settings** → **System** → **Logs**
-3. Restart Home Assistant
+If the `simple_curl.fetch` service doesn't appear after restart:
+
+1. **Verify `configuration.yaml`**: Make sure you added `simple_curl:` to your configuration.yaml file
+2. **Check YAML syntax**: Run **Developer Tools** → **YAML** → **Check Configuration** to ensure no YAML errors
+3. **Verify installation**: Confirm the integration is in `custom_components/simple_curl/`
+4. **Check logs**: Go to **Settings** → **System** → **Logs** and search for "simple_curl" errors
+5. **Restart again**: Sometimes a second restart is needed
+
+Common issues:
+- **Forgot to add to configuration.yaml** - This is the most common issue! The integration won't load without it.
+- **YAML indentation error** - Make sure `simple_curl:` is at the root level (no indentation)
+- **Typo in domain name** - Must be exactly `simple_curl:` (with underscore, not dash)
 
 ### Request fails with error
 

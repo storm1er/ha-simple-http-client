@@ -23,9 +23,14 @@ Thank you for your interest in contributing to Simple cURL for Home Assistant! T
 To test your changes:
 
 1. Copy the `custom_components/simple_curl` folder to your Home Assistant `custom_components` directory
-2. Restart Home Assistant
-3. Test the service in your automations
-4. Check Home Assistant logs for any errors
+2. Add to your `configuration.yaml`:
+   ```yaml
+   simple_curl:
+   ```
+3. Restart Home Assistant
+4. Verify the service appears in **Developer Tools** → **Services**
+5. Test the service in your automations or scripts
+6. Check Home Assistant logs for any errors
 
 ## Code Style
 
