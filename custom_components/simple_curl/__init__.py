@@ -11,6 +11,9 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "simple_curl"
 
+# This integration has no configuration parameters
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
+
 # Service schema
 SERVICE_FETCH_SCHEMA = vol.Schema({
     vol.Required("url"): cv.url,
