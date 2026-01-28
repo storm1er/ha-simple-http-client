@@ -1,14 +1,38 @@
-# Simple cURL for Home Assistant
+# Simple HTTP Client for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![GitHub Release](https://img.shields.io/github/release/storm1er/ha-simple-curl.svg)](https://github.com/storm1er/ha-simple-curl/releases)
-[![License](https://img.shields.io/github/license/storm1er/ha-simple-curl.svg)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/release/storm1er/ha-simple-http-client.svg)](https://github.com/storm1er/ha-simple-http-client/releases)
+[![License](https://img.shields.io/github/license/storm1er/ha-simple-http-client.svg)](LICENSE)
+
+> **⚠️ IMPORTANT: Integration Renamed**
+>
+> This integration was previously called **"Simple cURL"** (domain: `simple_curl`). It has been renamed to **"Simple HTTP Client"** (domain: `simple_http_client`).
+>
+> **If you're upgrading from version v1.0.0:**
+>
+> **For HACS users:**
+> 1. In `configuration.yaml`: remove `simple_curl:`
+> 2. Restart Home Assistant to disable the old integration
+> 3. In HACS → Integrations, find "Simple cURL" and remove it
+> 4. Remove old repo repository: `https://github.com/storm1er/ha-simple-curl`
+> 4. Add repository: `https://github.com/storm1er/ha-simple-http-client`
+> 5. Download "Simple HTTP Client"
+> 6. In `configuration.yaml`: add `simple_http_client:`
+> 7. Restart Home Assistant
+> 8. Update all service calls: `simple_curl.fetch` → `simple_http_client.fetch`
+>
+> **For manual installation users:**
+> 1. Delete `custom_components/simple_curl/` folder
+> 1. Download upgraded integration in `custom_components/simple_curl/` folder
+> 2. In `configuration.yaml`: change `simple_curl:` to `simple_http_client:`
+> 3. Update all service calls: `simple_curl.fetch` → `simple_http_client.fetch`
+> 4. Restart Home Assistant
 
 A lightweight Home Assistant integration that provides a simple service to fetch URLs with custom HTTP methods and headers. The response is returned as a variable that can be used directly in your automations and scripts.
 
 ## Why Use This?
 
-Unlike the built-in `rest` integration which requires YAML configuration and creates sensors, Simple cURL provides a **callable service** that:
+Unlike the built-in `rest` integration which requires YAML configuration and creates sensors, Simple HTTP Client provides a **callable service** that:
 
 - Works directly in automations and scripts without any configuration
 - Returns data as variables using Home Assistant's `response_variable` feature
@@ -24,23 +48,23 @@ Perfect for one-off API calls, webhooks, or dynamic URL fetching where you don't
 
 1. Open HACS in Home Assistant
 2. Click the three dots (⋮) in the top right → **Custom repositories**
-3. Add this repository URL: `https://github.com/storm1er/ha-simple-curl`
+3. Add this repository URL: `https://github.com/storm1er/ha-simple-http-client`
 4. Select category: **Integration**
 5. Click **Add**
-6. Find "Simple cURL" in HACS and click **Download**
+6. Find "Simple HTTP Client" in HACS and click **Download**
 7. Add to your `configuration.yaml`:
    ```yaml
-   simple_curl:
+   simple_http_client:
    ```
 8. Restart Home Assistant
 
 ### Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/storm1er/ha-simple-curl/releases)
-2. Extract and copy the `custom_components/simple_curl` folder to your Home Assistant `custom_components` directory
+1. Download the latest release from the [releases page](https://github.com/storm1er/ha-simple-http-client/releases)
+2. Extract and copy the `custom_components/simple_http_client` folder to your Home Assistant `custom_components` directory
 3. Add to your `configuration.yaml`:
    ```yaml
-   simple_curl:
+   simple_http_client:
    ```
 4. Restart Home Assistant
 
@@ -48,18 +72,18 @@ Perfect for one-off API calls, webhooks, or dynamic URL fetching where you don't
 
 ### Verify Installation
 
-After restarting Home Assistant with `simple_curl:` in your configuration.yaml:
+After restarting Home Assistant with `simple_http_client:` in your configuration.yaml:
 
 1. Go to **Developer Tools** → **Services**
-2. Search for `simple_curl.fetch`
+2. Search for `simple_http_client.fetch`
 3. If the service appears, installation was successful!
 
 Alternatively, check the logs at **Settings** → **System** → **Logs** for:
 ```
-Simple cURL integration loaded successfully
+Simple HTTP Client integration loaded successfully
 ```
 
-## Service: `simple_curl.fetch`
+## Service: `simple_http_client.fetch`
 
 ### Parameters
 
@@ -93,7 +117,7 @@ automation:
       - platform: time
         at: "09:00:00"
     action:
-      - service: simple_curl.fetch
+      - service: simple_http_client.fetch
         data:
           url: "https://api.example.com/data"
         response_variable: api_response
@@ -109,7 +133,7 @@ automation:
 script:
   post_to_api:
     sequence:
-      - service: simple_curl.fetch
+      - service: simple_http_client.fetch
         data:
           url: "https://api.example.com/endpoint"
           method: "POST"
@@ -134,7 +158,7 @@ automation:
       - platform: time_pattern
         hours: "/1"
     action:
-      - service: simple_curl.fetch
+      - service: simple_http_client.fetch
         data:
           url: "https://api.weather.example.com/current"
           headers:
@@ -161,7 +185,7 @@ automation:
         entity_id: input_boolean.check_api
         to: "on"
     action:
-      - service: simple_curl.fetch
+      - service: simple_http_client.fetch
         data:
           url: "https://api.example.com/status"
           timeout: 5
@@ -193,7 +217,7 @@ automation:
       - platform: time_pattern
         minutes: "/15"
     action:
-      - service: simple_curl.fetch
+      - service: simple_http_client.fetch
         data:
           url: "https://api.example.com/data"
           timeout: 10
@@ -220,7 +244,7 @@ automation:
 script:
   fetch_device_status:
     sequence:
-      - service: simple_curl.fetch
+      - service: simple_http_client.fetch
         data:
           url: "http://{{ states('input_text.device_ip') }}/api/status"
           headers:
@@ -244,18 +268,18 @@ script:
 
 ### Service not found
 
-If the `simple_curl.fetch` service doesn't appear after restart:
+If the `simple_http_client.fetch` service doesn't appear after restart:
 
-1. **Verify `configuration.yaml`**: Make sure you added `simple_curl:` to your configuration.yaml file
+1. **Verify `configuration.yaml`**: Make sure you added `simple_http_client:` to your configuration.yaml file
 2. **Check YAML syntax**: Run **Developer Tools** → **YAML** → **Check Configuration** to ensure no YAML errors
-3. **Verify installation**: Confirm the integration is in `custom_components/simple_curl/`
-4. **Check logs**: Go to **Settings** → **System** → **Logs** and search for "simple_curl" errors
+3. **Verify installation**: Confirm the integration is in `custom_components/simple_http_client/`
+4. **Check logs**: Go to **Settings** → **System** → **Logs** and search for "simple_http_client" errors
 5. **Restart again**: Sometimes a second restart is needed
 
 Common issues:
 - **Forgot to add to configuration.yaml** - This is the most common issue! The integration won't load without it.
-- **YAML indentation error** - Make sure `simple_curl:` is at the root level (no indentation)
-- **Typo in domain name** - Must be exactly `simple_curl:` (with underscore, not dash)
+- **YAML indentation error** - Make sure `simple_http_client:` is at the root level (no indentation)
+- **Typo in domain name** - Must be exactly `simple_http_client:` (with underscore, not dash)
 
 ### Request fails with error
 
@@ -282,7 +306,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you find this integration useful, consider:
 - Starring the repository on GitHub
-- Reporting issues or suggesting features via [GitHub Issues](https://github.com/storm1er/ha-simple-curl/issues)
+- Reporting issues or suggesting features via [GitHub Issues](https://github.com/storm1er/ha-simple-http-client/issues)
 - Contributing improvements via pull requests
 
 ## Credits

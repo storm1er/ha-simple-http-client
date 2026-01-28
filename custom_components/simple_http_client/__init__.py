@@ -1,4 +1,4 @@
-"""Simple cURL integration for Home Assistant."""
+"""Simple HTTP Client integration for Home Assistant."""
 import logging
 import aiohttp
 import voluptuous as vol
@@ -9,7 +9,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "simple_curl"
+DOMAIN = "simple_http_client"
 
 # This integration has no configuration parameters
 CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
@@ -25,7 +25,7 @@ SERVICE_FETCH_SCHEMA = vol.Schema({
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the Simple cURL component."""
+    """Set up the Simple HTTP Client component."""
 
     async def async_handle_fetch(call: ServiceCall) -> ServiceResponse:
         """Handle the fetch service call."""
@@ -94,6 +94,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         supports_response=SupportsResponse.ONLY,
     )
 
-    _LOGGER.info("Simple cURL integration loaded successfully")
+    _LOGGER.info("Simple HTTP Client integration loaded successfully")
 
     return True

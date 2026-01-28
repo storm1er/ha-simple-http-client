@@ -1,10 +1,10 @@
-# Contributing to Simple cURL
+# Contributing to Simple HTTP Client
 
-Thank you for your interest in contributing to Simple cURL for Home Assistant! This document provides guidelines for contributing and instructions for publishing the integration to HACS.
+Thank you for your interest in contributing to Simple HTTP Client for Home Assistant! This document provides guidelines for contributing and instructions for publishing the integration to HACS.
 
 ## Ways to Contribute
 
-- Report bugs via [GitHub Issues](https://github.com/storm1er/ha-simple-curl/issues)
+- Report bugs via [GitHub Issues](https://github.com/storm1er/ha-simple-http-client/issues)
 - Suggest new features or improvements
 - Submit pull requests for bug fixes or enhancements
 - Improve documentation
@@ -22,10 +22,10 @@ Thank you for your interest in contributing to Simple cURL for Home Assistant! T
 
 To test your changes:
 
-1. Copy the `custom_components/simple_curl` folder to your Home Assistant `custom_components` directory
+1. Copy the `custom_components/simple_http_client` folder to your Home Assistant `custom_components` directory
 2. Add to your `configuration.yaml`:
    ```yaml
-   simple_curl:
+   simple_http_client:
    ```
 3. Restart Home Assistant
 4. Verify the service appears in **Developer Tools** → **Services**
@@ -58,7 +58,7 @@ Follow [Semantic Versioning](https://semver.org/):
 - **PATCH**: Bug fixes, backwards compatible
 
 Update the version in:
-- `custom_components/simple_curl/manifest.json`
+- `custom_components/simple_http_client/manifest.json`
 - Git tag when creating a release
 
 ## Additional Resources
@@ -79,7 +79,7 @@ Update the version in:
 
 ## Questions or Problems?
 
-- Check existing [GitHub Issues](https://github.com/storm1er/ha-simple-curl/issues)
+- Check existing [GitHub Issues](https://github.com/storm1er/ha-simple-http-client/issues)
 - Create a new issue with detailed information
 - For HACS-specific questions, see [HACS documentation](https://www.hacs.xyz/)
 

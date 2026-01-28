@@ -1,5 +1,5 @@
 {
-  "name": "Simple cURL",
+  "name": "Simple HTTP Client",
   "render_readme": true,
   "homeassistant": "2026.1.0"
 }

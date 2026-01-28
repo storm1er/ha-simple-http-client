@@ -1,0 +1,13 @@
+{
+  "domain": "simple_http_client",
+  "name": "Simple HTTP Client",
+  "codeowners": ["@storm1er"],
+  "config_flow": false,
+  "dependencies": [],
+  "documentation": "https://github.com/storm1er/ha-simple-http-client",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/storm1er/ha-simple-http-client/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}
